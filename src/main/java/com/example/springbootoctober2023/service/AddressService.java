@@ -1,11 +1,16 @@
 package com.example.springbootoctober2023.service;
 
 import com.example.springbootoctober2023.model.Address;
+import com.example.springbootoctober2023.model.Details;
 import com.example.springbootoctober2023.repository.AddressRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
+import org.springframework.stereotype.Service;
+import org.springframework.util.ReflectionUtils;
+
+import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -16,24 +21,85 @@ public class AddressService {
 
     public String add(Address address) {
         repository.save(address);
-        return "Successfully Saved to dataBase";
+        return "Successfully saved to database";
     }
 
-    public String updateAddressDetails(String type, String cityName, String stateName, int pinCode, String addressLine1, String addressLine2, Long id) {
-        Address address = repository.getById(id);
-        address.setType(type);
-        address.setCityName(cityName);
-        address.setStateName(stateName);
-        address.setPinCode(pinCode);
-        address.setAddressLine1(addressLine1);
-        address.setAddressLine2(addressLine2);
-        repository.save(address);
+//        public String updateAddress(Long id,String type) {
+//        Optional<Address> address1 = repository.findById(id);
+//        if (address1.isPresent()) {
+//            Address address = address1.get();
+//
+//
+//
+//            if (address.getType().equals("Current")) {
+//                return "Current" + updateCurrentAddress(address);
+//
+//            } else {
+//                return "Permanent" + updatePermanentAddress(address);
+//            }
+//        } else {
+//            return "Address not found";
+//        }
+//    }
 
-        if (id == null) {
-            return "Address not found";
-        } else {
-            return "Successfully Updated Details as " + type + cityName + stateName + pinCode + addressLine1 + addressLine2;
+//    public String updateCurrentAddress(Long id,Address currentAddress) {
+//    Address address =repository.findById(id)
+//            .orElseThrow(() -> new ResourceNotFoundException("user not found with id: "+id));
+//
+//    address.setCurrentAddress(currentAddress);
+//    return repository.save(address);
+//
+//    }
+
+
+    //    public Address updateAddressByType(Long id, Map<String, Object> type) {
+//        Optional<Address> existingAddress = repository.findById(id);
+//        if (existingAddress.isPresent()) {
+//            type.forEach((key, value) -> {
+//                Field field = ReflectionUtils.findField(Address.class, key);
+//                field.setAccessible(true);
+//                ReflectionUtils.setField(field, existingAddress.get(), value);
+//            });
+//           return repository.save(existingAddress.get());
+//
+//        }
+//        return null;
+//    }
+    public Address updateAddress(Long id, Map<String, Object> type) {
+        Optional<Address> existingAddress = repository.findById(id);
+        if (existingAddress.isPresent()) {
+            Address address = existingAddress.get();
+            String addressType = (String) type.get("type");
+            if (addressType != null) {
+                if (addressType.equalsIgnoreCase("CURRENT")) {
+                    updateCurrentAddress(address, type);
+                } else if (addressType.equalsIgnoreCase("PERMANENT")) {
+                    updatePremAddress(address, type);
+                }
+            }
+            return repository.save(address);
         }
+        return null;
+    }
+
+    private void updateCurrentAddress(Address address, Map<String, Object> type) {
+        type.forEach((key, value) -> {
+            if (!key.equalsIgnoreCase("type")) {
+                Field field = ReflectionUtils.findField(Address.class, key);
+                field.setAccessible(true);
+                ReflectionUtils.setField(field, address, value);
+            }
+        });
+    }
+
+    private void updatePremAddress(Address address, Map<String, Object> type) {
+        type.forEach((key, value) -> {
+            if (!key.equalsIgnoreCase("type")) {
+                Field field = ReflectionUtils.findField(Address.class, key);
+                field.setAccessible(true);
+                ReflectionUtils.setField(field, address, value);
+            }
+        });
     }
 
     public List<Address> getAllAddressDetails() {
@@ -57,4 +123,6 @@ public class AddressService {
         repository.deleteById(id);
         return "Successfully deleted from Database";
     }
+
+
 }

@@ -1,22 +1,24 @@
 package com.example.springbootoctober2023.controller;
 
 import com.example.springbootoctober2023.model.Address;
-import com.example.springbootoctober2023.model.Details;
 import com.example.springbootoctober2023.service.AddressService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
+@RequestMapping("/addresses")
 public class AddressController {
 
     @Autowired
     AddressService service;
 
 
-    @GetMapping("/add_Address_details")
+    @PostMapping("/add_Address_details")
     public String add(@RequestBody Address address) {
         return service.add(address);
     }
@@ -44,16 +46,25 @@ public class AddressController {
 
         return service.getAddressByStateName(stateName);
     }
+//
+//    @PatchMapping("/updateAddress/{id}")
+//   public Address updateAddressByType(@PathVariable Long id, @RequestBody Map<String, Object>type){
+//        return service.updateAddressByType(id, type);
+//   }
 
-
-
-
-    @PatchMapping("/update_Address_Details")
-    public String updateAddressDetails(@RequestParam String type, @RequestParam String cityName, @RequestParam String stateName, @RequestParam int pinCode, @RequestParam String addressLine1, @RequestParam String addressLine2, @RequestParam Long id) {
-
-        return service.updateAddressDetails(type, cityName, stateName, pinCode, addressLine1, addressLine2, id);
-
+    @PatchMapping("/{id}")
+    public ResponseEntity<Address>updateAddress(@PathVariable Long id,@RequestBody Map<String,Object>type){
+        Address updateAddress=service.updateAddress(id,type);
+        if (updateAddress!=null){
+            return ResponseEntity.ok(updateAddress);
+        }else {
+            return ResponseEntity.notFound().build();
+        }
     }
+
+
+
+
     @DeleteMapping("/delete_add_by_id/{id}")
     public String deleteById(@PathVariable Long id){
         return service.removeById(id);
